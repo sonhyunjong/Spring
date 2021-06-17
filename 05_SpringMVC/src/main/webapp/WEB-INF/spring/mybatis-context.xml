@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource"
+		destroy-method="close"
+		p:driverClassName="${db.driver}"
+		p:url="${db.url}"
+		p:username="${db.username}"
+		p:password="${db.password}"	
+	/>
+	
+	<!-- 
+	<bean id="mybatisConfig" class="org.apache.ibatis.session.Configuration"
+		p:jdbcTypeForNull="NULL"
+	/>
+	
+	p:configuration-ref="mybatisConfig"
+	 -->
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" 
+		p:configLocation="classpath:mybatis-config.xml"
+		p:mapperLocations="classpath:mappers/**/*.xml"
+		p:typeAliasesPackage="com.kh.mvc.*.model.vo"
+		p:dataSource-ref="dataSource"	
+	/>
+	
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate"
+		c:sqlSessionFactory-ref="sqlSessionFactory"
+	/>
+	
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"
+		p:basePackage="com.kh.mvc.*.model.mapper"	
+	/>
+	
+	<!-- 
+	트랜잭션 처리 방법
+	
+	1. 트랜잭션 매니저 등록하기
+	 -->	
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+		p:dataSource-ref="dataSource"
+	/>
+	
+	<!-- 
+	2. 트랜잭션 처리 관련 설정
+	  1) 선언적 트랜잭션 처리 방법
+		<tx:advice id="txAdvice" transaction-manager="transactionManager">
+			<tx:attributes>
+				<tx:method name="insert*" rollback-for="Exception"/>
+				<tx:method name="update*" rollback-for="Exception"/>
+			</tx:attributes>
+		</tx:advice>
+			
+		pointcut설정하기 
+		<aop:config proxy-target-class="true">
+			<aop:pointcut id="serviceMethod" 
+			expression="execution(* com.kh.spring..*ServiceImpl.insert*(..))"/>
+			<aop:advisor id="trasactionAdvisor" advice-ref="txAdvice" pointcut-ref="serviceMethod"/>
+		</aop:config>
+	  
+	  2) 명시적 트랜잭션 처리 방법
+	    @Transactional을 사용해서 처리하는 방법	    
+	    	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+	    	설정 파일(servlet-context.xml)에 등록 후 트랜잭션 적용이 필요한 클래스나 메소드에 @Transactional을 붙여준다.
+	 -->
+</beans>
