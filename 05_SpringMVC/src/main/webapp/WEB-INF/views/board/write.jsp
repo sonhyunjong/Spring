@@ -15,7 +15,8 @@
 <body>
 	<h2>게시판 작성</h2>
 	<div id='board-write-container'>
-		<form action="${ path }/board/write" method="POST">
+		<form action="${ path }/board/write" method="POST" 
+					enctype="multipart/form-data">
 			<table id='tbl-board'>
 				<tr>
 					<th>제목</th>
@@ -29,10 +30,12 @@
 					<th>첨부파일1</th>
 					<td><input type="file" name="upfile"></td>
 				</tr>
+				<!-- 
 				<tr>
 					<th>첨부파일2</th>
 					<td><input type="file" name="upfile"></td>
 				</tr>
+				 -->
 				<tr>
 					<th>내용</th>
 					<td><textarea name="content" cols="50" rows="15" ></textarea></td>

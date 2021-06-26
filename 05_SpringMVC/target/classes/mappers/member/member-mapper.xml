@@ -147,7 +147,7 @@
 		    DEFAULT,
 		    #{name},
 		    #{phone},
-		    #{email} ,
+		    #{email},
 		    #{address},
 		    #{hobby},
 		    DEFAULT,
@@ -172,7 +172,7 @@
  		UPDATE MEMBER_EX
  		SET
  			STATUS='N'
- 		WHERE
+ 		WHERE 
  			NO=#{no}
  	</update>
  </mapper>

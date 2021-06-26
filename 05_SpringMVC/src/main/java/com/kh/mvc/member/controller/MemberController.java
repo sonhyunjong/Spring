@@ -3,7 +3,11 @@ package com.kh.mvc.member.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -222,15 +226,16 @@ public class MemberController {
 	    - 스프링에서는 jackson 라이브러리를 추가하고 @ResponseBody을 사용하면 리턴되는 객체를 자동으로 JSON으로 변경해서 응답해준다.
 	*/
 	@GetMapping("/member/idCheck")
-	@ResponseBody
-	public Map<String, Object> idCheck(@RequestParam("id") String userId) {
+//	@ResponseBody
+//	public Map<String, Object> idCheck(@RequestParam("id") String userId) {
+	public ResponseEntity<Map<String, Object>> idCheck(@RequestParam("id") String userId) {
 		log.info("User ID : {}", userId);
 		
 		Map<String, Object> map = new HashMap<>();
 		
 		map.put("validate", service.validate(userId));
 		
-		return map;
+		return new ResponseEntity<Map<String,Object>>(map, HttpStatus.OK);
 	}
 	
 	@GetMapping("/member/view")
@@ -278,16 +283,15 @@ public class MemberController {
 		if(result > 0) {
 			model.addObject("msg", "정상적으로 탈퇴되었습니다.");
 			model.addObject("location", "/logout");
-		}else {
-			model.addObject("msg","회원 탈퇴를 실패하였습니다.");
+		} else {
+			model.addObject("msg", "회원 탈퇴를 실패하였습니다.");
 			model.addObject("location", "/member/view");
-		}
+		}	
 		
 		model.setViewName("common/msg");
 		
 		return model;
 	}
-	
 	
 	
 	

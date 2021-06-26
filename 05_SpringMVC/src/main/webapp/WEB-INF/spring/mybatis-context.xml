@@ -13,16 +13,16 @@
 		p:password="${db.password}"	
 	/>
 	
-	<!-- 
 	<bean id="mybatisConfig" class="org.apache.ibatis.session.Configuration"
 		p:jdbcTypeForNull="NULL"
 	/>
 	
-	p:configuration-ref="mybatisConfig"
-	 -->
-	
+	<!-- 	
+	 p:configuration-ref="mybatisConfig"
+	 p:configLocation="classpath:mybatis-config.xml"
+	 -->	
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" 
-		p:configLocation="classpath:mybatis-config.xml"
+		p:configuration-ref="mybatisConfig"
 		p:mapperLocations="classpath:mappers/**/*.xml"
 		p:typeAliasesPackage="com.kh.mvc.*.model.vo"
 		p:dataSource-ref="dataSource"	

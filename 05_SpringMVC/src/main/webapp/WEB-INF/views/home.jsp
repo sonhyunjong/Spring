@@ -14,6 +14,9 @@
 <h1>
 	Hello world!  
 </h1>
+<p>
+	<a href="${ path }/board/list">게시글 조회</a>
+</p>
 
 <c:if test="${ loginMember == null }">
 	<form action="login" method="POST">
@@ -30,10 +33,6 @@
 		${ loginMember.name }
 	</a>님, 안녕하세요.
 	<button onclick="location.replace('${path}/logout')">로그아웃</button>
-	
-	<p>
-	
-	<a href="${ path }/board/write">게시글 작성</a>
 </c:if>
 
 </body>

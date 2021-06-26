@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
 public class Board {
 	private int no;
 	
-	private int rowNum;
-	
 	private int writerNo;
 	
 	private String writerId;
@@ -30,6 +28,8 @@ public class Board {
 	private int readCount;
 	
 	private String status;
+	
+	private String type;
 	
 	private List<Reply> replies;
 	

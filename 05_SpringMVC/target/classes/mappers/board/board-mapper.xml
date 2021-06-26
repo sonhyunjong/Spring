@@ -3,7 +3,7 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="boardMapper">
+<mapper namespace="com.kh.mvc.board.model.mapper.BoardMapper">
 	<sql id="boardListSql">
 		SELECT  B.NO,
 				B.TITLE, 
@@ -16,7 +16,7 @@
 				B.CREATE_DATE, 
 				B.MODIFY_DATE
 		FROM BOARD B
-		JOIN MEMBER M ON(B.WRITER_NO = M.NO)
+		JOIN MEMBER_EX M ON(B.WRITER_NO = M.NO)
 		WHERE B.STATUS = 'Y'
 	</sql>
 	
@@ -24,6 +24,7 @@
 		<id property="no" column="NO"/>
 		<result property="title" column="TITLE"/>
 		<result property="writerId" column="ID"/>
+		<result property="writerNo" column="WRITER_NO"/>
 		<result property="readCount" column="READCOUNT"/>
 		<result property="originalFileName" column="ORIGINAL_FILENAME"/>
 		<result property="renamedFileName" column="RENAMED_FILENAME"/>
@@ -32,59 +33,7 @@
 		<result property="createDate" column="CREATE_DATE"/>
 		<result property="modifyDate" column="MODIFY_DATE"/>
 	</resultMap>
-	
-	<!-- 
-		1. 쿼리문을 각각 만들어서 하나의 ResultMap에서 매핑하는 방법
-			extends="boardListResultMap" 위에 작성한 resultMap을 상속하는 속성
-	<resultMap type="Board" extends="boardListResultMap" id="boardDetailResultMap">
-			아래와 같이 collection 태그를 가지고 작업하게 되면 Board 클래스의 멤버 변수인 replies에 매핑할 수 있다.
-				javaType : 어떤 자바 컬렉션 타입인지 명시해준다.
-				select : 컬렉션을 조회하고자하는 쿼리문의 id를 적어준다.
-				column : 컬렉션을 조회하고자하는 쿼리문에 파라미터를 전달 해줄 때 사용한다.
-				
-			* 1:1 관계인 객체를 조회해 오고 싶다면 association 태그를 사용해서 매핑해주면 된다.		
-		<collection property="replies" javaType="arraylist" select="selectBoardReplies" column="NO"/>
-	</resultMap>
-	
-	<resultMap type="Reply" id="boardReplyResultMap">
-		<id property="no" column="NO"/>
-		<result property="boardNo" column="BOARD_NO"/>
-		<result property="writerNo" column="WRITER_NO"/>
-		<result property="writerId" column="ID"/>
-		<result property="content" column="CONTENT"/>
-		<result property="createDate" column="CREATE_DATE"/>
-		<result property="modifyDate" column="MODIFY_DATE"/>
-	</resultMap>
-	 -->
-	<!-- 
-	  2. 하나의 쿼리문을 만들어서 하나의 ResultMap에서 매핑하는 방법
-	
-	 <resultMap type="Board" id="boardDetailResultMap">
-	 	<id property="no" column="B_NO"/>
-		<result property="title" column="TITLE"/>
-		<result property="writerId" column="B_ID"/>
-		<result property="readCount" column="READCOUNT"/>
-		<result property="originalFileName" column="ORIGINAL_FILENAME"/>
-		<result property="renamedFileName" column="RENAMED_FILENAME"/>
-		<result property="content" column="B_CONTENT"/>
-		<result property="type" column="TYPE"/>
-		<result property="createDate" column="B_CREATE_DATE"/>
-		<result property="modifyDate" column="B_MODIFY_DATE"/>
-	 
-	 	<collection property="replies" javaType="arraylist" resultMap="boardReplyResultMap"/>
-	 </resultMap>
-	 
-	 <resultMap type="Reply" id="boardReplyResultMap">
-		<id property="no" column="R_NO"/>
-		<result property="boardNo" column="BOARD_NO"/>
-		<result property="writerNo" column="WRITER_NO"/>
-		<result property="writerId" column="R_ID"/>
-		<result property="content" column="R_CONTENT"/>
-		<result property="createDate" column="R_CREATE_DATE"/>
-		<result property="modifyDate" column="R_MODIFY_DATE"/>
-	</resultMap>
-	 -->
-	 
+
 	<resultMap type="Board" extends="boardListResultMap" id="boardDetailResultMap">
 		<collection property="replies" javaType="arraylist" columnPrefix="R_" resultMap="boardReplyResultMap"/>
 	</resultMap>
@@ -100,173 +49,22 @@
 	</resultMap>
 	 
 
-	<select id="selectBoardList" parameterType="map" resultMap="boardListResultMap">
-		<!-- 
-		1 ~ 3까지 기본 쿼리문
-		SELECT  B.NO,
-				B.TITLE, 
-				M.ID, 
-				B.READCOUNT, 
-				B.ORIGINAL_FILENAME, 
-				B.RENAMED_FILENAME, 
-				B.CONTENT, 
-				B.CREATE_DATE, 
-				B.MODIFY_DATE
-		FROM BOARD B
-		JOIN MEMBER M ON(B.WRITER_NO = M.NO)
-		1. 다중 <if>를 활용한 검색기능 구현
-		
-		WHERE B.STATUS = 'Y'
-		
-		<if test="writer != null">
-			AND M.ID LIKE '%' || #{writer} || '%'
-		</if>
-		<if test="title != null">
-			AND B.TITLE LIKE '%' || #{title} || '%'
-		</if>
-		<if test="content != null">
-			AND B.CONTENT LIKE '%' || #{content} || '%'
-		</if>
-		 -->
-		 
-		<!-- 
-		2. <where>와 다중 <if>를 활용한 검색기능 구현 
-		
-	 	<where>
-			<if test="writer != null">
-				M.ID LIKE '%' || #{writer} || '%'
-			</if>
-			<if test="title != null">
-				AND B.TITLE LIKE '%' || #{title} || '%'
-			</if>
-			<if test="content != null">
-				AND B.CONTENT LIKE '%' || #{content} || '%'
-			</if>
-			
-			AND B.STATUS = 'Y'
-	 	</where>
-		-->
-		<!-- 
-		3. <trim>과 다중 <if>를 활용한 검색기능 구현 
-		 <trim prefix="WHERE" prefixOverrides="AND|OR">
-		 	<if test="writer != null">
-				M.ID LIKE '%' || #{writer} || '%'
-			</if>
-			<if test="title != null">
-				AND B.TITLE LIKE '%' || #{title} || '%'
-			</if>
-			<if test="content != null">
-				AND B.CONTENT LIKE '%' || #{content} || '%'
-			</if>
-			
-			AND B.STATUS = 'Y'
-		 </trim>
-		 -->		 
-		 <!-- 
-		 4.<choose>, <when>, <otherwise>를 활용한 검색기능 구현
-		 -->
+	<select id="selectBoardList" resultMap="boardListResultMap">
 		<include refid="boardListSql"/>
-		<choose>
-			<when test="writer != null">
-				AND M.ID LIKE '%' || #{writer} || '%'
-			</when>
-			<when test="title != null">
-				AND B.TITLE LIKE '%' || #{title} || '%'
-			</when>
-			<when test="content != null">
-				AND B.CONTENT LIKE '%' || #{content} || '%'
-			</when>
-			<otherwise>
-				<!-- 위의 조건 중 하나도 만족하지 않는 경우 포함될 쿼리 작성 -->
-			</otherwise>
-		</choose>
+		
 		ORDER BY B.NO DESC
 	</select>
 	
-	<select id="selectBoardListByFilters" parameterType="map" resultMap="boardListResultMap">
-		<include refid="boardListSql"/>
-		<if test="filters != null">		
-			<!-- 
-				AND B.TYPE IN ('B2','B3')
-				
-				위 결과를 만들기 위해 foreach 태그를 사용한다.
-					collection : 파라미터로 넘어온 배열, 리스트를 지정한다.
-					item : 배열, 리스트의 각 요소들의 값이 들어가는 변수
-					index : 반복횟수(0부터 시작한다.)
-					open : 반복문 시작전에 출력할 문자
-					close : 반복문 끝나고 출력할 문자
-					separator : 반복할 때마다 반복을 구분할 문자
-			 -->
-			AND B.TYPE IN
-			<foreach collection="filters" item="filter" open="(" separator="," close=")">
-				#{filter}
-			</foreach>
-		</if>
-		ORDER BY B.NO DESC		
-	</select>
-	
-	<select id="selectBoardCountByFilters" parameterType="map" resultType="_int">
+	<select id="selectBoardCount" resultType="_int">
 		SELECT COUNT(*)
 		FROM BOARD
-		WHERE STATUS='Y' 
-		<if test="filters != null">		
-			AND TYPE IN
-			<foreach collection="filters" item="filter" open="(" separator="," close=")">
-				#{filter}
-			</foreach>
-		</if>	
+		WHERE STATUS='Y'
 	</select>
 	
-	<!-- 
-		게시글 상세 보기(댓글 포함)	 
-		  1. 쿼리문을 각각 만들어서 하나의 ResultMap에서 매핑하는 방법 
-			 <select id="selectBoardByNo" parameterType="_int" resultMap="boardDetailResultMap" >
-			 	<include refid="boardListSql" />
-			 	AND B.NO = #{boardNo}
-			 </select>
-			
-			<select id="selectBoardReplies" parameterType="_int" resultMap="boardReplyResultMap">	
-				SELECT R.NO, 
-					   R.BOARD_NO, 
-					   R.CONTENT, 
-					   M.ID, 
-					   R.CREATE_DATE, 
-					   R.MODIFY_DATE
-				FROM REPLY R
-				JOIN MEMBER M ON(R.WRITER_NO = M.NO)
-				WHERE R.STATUS='Y' AND BOARD_NO=#{boardNo}
-				ORDER BY R.NO DESC
-			</select>
-			
-		  2. 하나의 쿼리문을 만들어서 하나의 ResultMap에서 매핑하는 방법
-	 -->
-	
 	<select id="selectBoardByNo" parameterType="_int" resultMap="boardDetailResultMap">
-		<!-- 
-		SELECT B.NO AS B_NO,
-		       B.TITLE, 
-		       M.ID AS B_ID, 
-		       B.READCOUNT, 
-		       B.ORIGINAL_FILENAME, 
-		       B.RENAMED_FILENAME, 
-		       B.CONTENT AS B_CONTENT,
-		       B.TYPE,
-		       B.CREATE_DATE AS B_CREATE_DATE, 
-		       B.MODIFY_DATE AS B_MODIFY_DATE,
-		       R.NO AS R_NO, 
-		       R.BOARD_NO, 
-		       R.CONTENT AS R_CONTENT, 
-		       M2.ID AS R_ID, 
-		       R.CREATE_DATE AS R_CREATE_DATE, 
-		       R.MODIFY_DATE AS R_MODIFY_DATE
-		FROM BOARD B
-		JOIN MEMBER M ON(B.WRITER_NO = M.NO)
-		LEFT OUTER JOIN REPLY R ON(B.NO = R.BOARD_NO)
-		LEFT OUTER JOIN MEMBER M2 ON(R.WRITER_NO = M2.NO)
-		WHERE B.STATUS='Y' AND B.NO=#{boardNo}
-		 -->
  		SELECT B.NO,
-		       B.TITLE, 
+		       B.TITLE,
+		       B.WRITER_NO, 
 		       M.ID, 
 		       B.READCOUNT, 
 		       B.ORIGINAL_FILENAME, 
@@ -282,9 +80,54 @@
 		       R.CREATE_DATE AS R_CREATE_DATE, 
 		       R.MODIFY_DATE AS R_MODIFY_DATE
 		FROM BOARD B
-		JOIN MEMBER M ON(B.WRITER_NO = M.NO)
+		JOIN MEMBER_EX M ON(B.WRITER_NO = M.NO)
 		LEFT OUTER JOIN REPLY R ON(B.NO = R.BOARD_NO)
-		LEFT OUTER JOIN MEMBER M2 ON(R.WRITER_NO = M2.NO)
+		LEFT OUTER JOIN MEMBER_EX M2 ON(R.WRITER_NO = M2.NO)
 		WHERE B.STATUS='Y' AND B.NO=#{boardNo}
 	</select>
+	
+	<insert id="insertBoard" parameterType="map"
+			useGeneratedKeys="true" keyProperty="no" keyColumn="NO">
+		INSERT INTO BOARD (
+			NO,
+			WRITER_NO,
+			TITLE,
+			CONTENT,
+			ORIGINAL_FILENAME,
+			RENAMED_FILENAME,
+			READCOUNT,
+			STATUS,
+			CREATE_DATE,
+			MODIFY_DATE,
+			TYPE		
+		) VALUES (
+			SEQ_BOARD_NO.NEXTVAL,
+			#{writerNo},
+			#{title},
+			#{content},
+			#{originalFileName},
+			#{renamedFileName},
+			DEFAULT,
+			DEFAULT,
+			DEFAULT,
+			DEFAULT,
+			DEFAULT
+		)
+	</insert>
+	
+	<update id="updateBoard" parameterType="map">
+		UPDATE BOARD
+		SET
+			TITLE=#{title},
+			CONTENT=#{content},
+			<if test="originalFileName != null">
+				ORIGINAL_FILENAME=#{originalFileName},
+			</if>
+			<if test="renamedFileName != null">
+				RENAMED_FILENAME=#{renamedFileName},
+			</if>
+			MODIFY_DATE=SYSDATE
+		WHERE
+			NO=#{no}
+	</update>
 </mapper>
